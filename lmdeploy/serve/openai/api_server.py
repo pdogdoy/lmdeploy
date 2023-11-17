@@ -190,7 +190,6 @@ async def chat_completions_v1(request: ChatCompletionRequest,
     # Non-streaming response
     final_res = None
     text = ''
-    output_ids = []
     async for res in result_generator:
         if await raw_request.is_disconnected():
             # Abort the request if the client disconnects.
@@ -199,15 +198,11 @@ async def chat_completions_v1(request: ChatCompletionRequest,
                                          'Client disconnected')
         final_res = res
         text += res.response
-        if res.cur_output_ids is not None:
-            output_ids.extend(res.cur_output_ids)
-
-    final_content = VariableInterface.async_engine.tokenizer.decode(output_ids)
     assert final_res is not None
     choices = []
     choice_data = ChatCompletionResponseChoice(
         index=0,
-        message=ChatMessage(role='assistant', content=final_content),
+        message=ChatMessage(role='assistant', content=text),
         finish_reason=final_res.finish_reason,
     )
     choices.append(choice_data)
