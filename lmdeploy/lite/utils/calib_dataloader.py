@@ -103,6 +103,17 @@ def get_c4(tokenizer, nsamples, seed, seqlen):
         data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'},
         split='validation',
         use_auth_token=False)
+    # 从本地路径加载 c4 数据集
+    # traindata = load_dataset(
+    #     'json',
+    #     data_files='/Users/cedric.chen/PycharmProjects/lmdeploy/data/c4/c4-train.00000-of-01024.json',
+    #     split='train',
+    #     use_auth_token=False)
+    # valdata = load_dataset(
+    #     'json',
+    #     data_files='/Users/cedric.chen/PycharmProjects/lmdeploy/data/c4/c4-validation.00000-of-00008.json',
+    #     split='train',
+    #     use_auth_token=False)
 
     import random
     random.seed(seed)
@@ -278,8 +289,8 @@ def get_pileval(tokenizer, nsamples, seed, seqlen=512):
     n_split = cat_samples.shape[1] // seqlen
     print(f' * Split into {n_split} blocks')
     return [
-        cat_samples[:, i * seqlen:(i + 1) * seqlen] for i in range(n_split)
-    ], None
+               cat_samples[:, i * seqlen:(i + 1) * seqlen] for i in range(n_split)
+           ], None
 
 
 def get_calib_loaders(name, tokenizer, nsamples=128, seed=0, seqlen=2048):
@@ -309,3 +320,20 @@ def get_calib_loaders(name, tokenizer, nsamples=128, seed=0, seqlen=2048):
 
     if 'pileval' in name:
         return get_pileval(tokenizer, nsamples, seed, seqlen)
+
+
+# 测试验证的数据集是否改到了本地路径
+# if __name__ == "__main__":
+#     from datasets import load_dataset
+#
+#     traindata = load_dataset(
+#         'json',
+#         data_files='/Users/cedric.chen/PycharmProjects/lmdeploy/data/c4/c4-train.00000-of-01024.json',
+#         split='train',
+#         use_auth_token=False)
+#     valdata = load_dataset(
+#         'json',
+#         data_files='/Users/cedric.chen/PycharmProjects/lmdeploy/data/c4/c4-validation.00000-of-00008.json',
+#         split='train',
+#         use_auth_token=False)
+#     print(f"train data length: {len(traindata)}, validate data length: {len(valdata)}")
