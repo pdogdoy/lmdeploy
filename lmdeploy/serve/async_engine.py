@@ -233,6 +233,7 @@ class AsyncEngine:
                         ignore_eos=ignore_eos,
                         random_seed=seed if sequence_start else None):
                     res, tokens = outputs[0]
+                    cur_output_ids = res.tolist()[response_size:]
                     # decode res
                     response = self.tokenizer.decode(res.tolist(),
                                                      offset=response_size)
@@ -244,7 +245,7 @@ class AsyncEngine:
                     # response, history token len,
                     # input token len, gen token len
                     yield GenOut(response, self.steps[str(session_id)],
-                                 len(input_ids), tokens, finish_reason)
+                                 len(input_ids), tokens, finish_reason, cur_output_ids)
                     response_size = tokens
 
                 # update step
