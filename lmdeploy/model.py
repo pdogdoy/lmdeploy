@@ -454,6 +454,63 @@ If a question does not make any sense, or is not factually coherent, explain why
         return ret
 
 
+# stanford alpaca
+@MODELS.register_module(name='stanford-alpaca')
+class StanfordAlpaca(BaseModel):
+    """Chat template of alpaca model."""
+
+    def __init__(
+            self,
+            system="""Below is an instruction that describes a task. Write a response that appropriately completes the request.""",
+            # noqa: E501
+            user='### Instruction',
+            assistant='### Response',
+            **kwargs):
+        super().__init__(**kwargs)
+        self.system = system
+        self.user = user
+        self.assistant = assistant
+
+    def decorate_prompt(self, prompt, sequence_start=True):
+        """Return the prompt that is concatenated with other elements in the
+        chat template.
+
+        Args:
+            prompt (str): user's input prompt
+            sequence_start (bool): indicator for the first round chat of a
+               session sequence
+        Returns:
+            str: the concatenated prompt
+        """
+        assert self.capability == 'chat', \
+            f'{type(self).__name__} has no capability of {self.capability}'
+        if sequence_start:
+            return f'{self.system}\n\n{self.user}:\n{prompt}\n\n{self.assistant}:\n'
+        else:
+            return f'</s>{self.user}:\n{prompt}\n\n{self.assistant}:\n'
+
+    def messages2prompt(self, messages, sequence_start=True):
+        """Return the prompt that is concatenated with other elements in the
+        chat template.
+
+        Args:
+            messages (str | List): user's input prompt
+        Returns:
+            str: the concatenated prompt
+        """
+        if isinstance(messages, str):
+            return self.get_prompt(messages, sequence_start)
+        system, users, assistants = self._translate_messages(messages)
+        system = self.system if not system else system
+        ret = system + '\n\n'
+        for user, assistant in zip(users, assistants):
+            if assistant:
+                ret += f'{self.user}:\n{user}\n\n{self.assistant}:\n{assistant}</s>'
+            else:
+                ret += f'{self.user}:\n{user}\n\n{self.assistant}:\n'
+        return ret
+
+
 @MODELS.register_module(name='qwen-14b')
 @MODELS.register_module(name='qwen-7b')
 class Qwen7BChat(BaseModel):
