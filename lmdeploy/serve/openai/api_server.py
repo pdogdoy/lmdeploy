@@ -125,7 +125,7 @@ async def chat_completions_v1(request: ChatCompletionRequest,
 
     model_name = request.model
     request_id = str(request.session_id)
-    created_time = int(time.time())
+    created_time = time.perf_counter()
 
     result_generator = VariableInterface.async_engine.generate(
         request.messages,
@@ -153,6 +153,7 @@ async def chat_completions_v1(request: ChatCompletionRequest,
         response = ChatCompletionStreamResponse(
             id=request_id,
             created=created_time,
+            finished=finished_time,
             model=model_name,
             choices=[choice_data],
         )
@@ -216,6 +217,10 @@ async def chat_completions_v1(request: ChatCompletionRequest,
         completion_tokens=final_res.generate_token_len,
         total_tokens=total_tokens,
     )
+
+    finished_time = time.perf_counter()
+    cost_time = float(f"{finished_time - created_time:.4f}")
+
     response = ChatCompletionResponse(
         id=request_id,
         created=created_time,
@@ -223,6 +228,13 @@ async def chat_completions_v1(request: ChatCompletionRequest,
         choices=choices,
         usage=usage,
     )
+
+    if cost_time >= 10 ** -5:
+        print(f"prompt_tokens: {final_res.input_token_len}, "
+              f"completion_tokens: {final_res.generate_token_len}, "
+              f"total_tokens: {total_tokens}, "
+              f"cost_time: {cost_time}s, "
+              f"generate token speed: {(final_res.generate_token_len / cost_time) : .3f}token/s")
 
     return response
 

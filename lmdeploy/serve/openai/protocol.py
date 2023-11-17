@@ -91,7 +91,9 @@ class ChatCompletionResponse(BaseModel):
     """Chat completion response."""
     id: str = Field(default_factory=lambda: f'chatcmpl-{shortuuid.random()}')
     object: str = 'chat.completion'
-    created: int = Field(default_factory=lambda: int(time.time()))
+    created: float = Field(default_factory=lambda: time.perf_counter())
+    finished: float = Field(default_factory=lambda: time.perf_counter())
+    cost_time: float = Field(default_factory=lambda: time.perf_counter())
     model: str
     choices: List[ChatCompletionResponseChoice]
     usage: UsageInfo
@@ -114,7 +116,9 @@ class ChatCompletionStreamResponse(BaseModel):
     """Chat completion stream response."""
     id: str = Field(default_factory=lambda: f'chatcmpl-{shortuuid.random()}')
     object: str = 'chat.completion.chunk'
-    created: int = Field(default_factory=lambda: int(time.time()))
+    created: float = Field(default_factory=lambda: time.perf_counter())
+    finished: float = Field(default_factory=lambda: time.perf_counter())
+    cost_time: float = Field(default_factory=lambda: time.perf_counter())
     model: str
     choices: List[ChatCompletionResponseStreamChoice]
 
