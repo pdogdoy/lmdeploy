@@ -15,6 +15,7 @@ class GenOut:
     input_token_len: int
     generate_token_len: int
     finish_reason: Optional[Literal['stop', 'length']] = None
+    cur_output_ids: Optional[List[str]] = None
 
 
 class AsyncEngine:
@@ -244,7 +245,7 @@ class AsyncEngine:
                     # response, history token len,
                     # input token len, gen token len
                     yield GenOut(response, self.steps[str(session_id)],
-                                 len(input_ids), tokens, finish_reason)
+                                 len(input_ids), tokens, finish_reason, res)
                     response_size = tokens
 
                 # update step
