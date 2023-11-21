@@ -30,7 +30,9 @@ def _stop_words(stop_words: List[str], tokenizer: Tokenizer):
     assert isinstance(stop_words, List) and \
            all(isinstance(elem, str) for elem in stop_words), \
            f'stop_words must be a list but got {type(stop_words)}'
-    stop_words = [tokenizer.encode(stop_word)[-1] for stop_word in stop_words]
+    stop_words = [
+        tokenizer.encode(stop_word, False)[-1] for stop_word in stop_words
+    ]
     assert isinstance(stop_words, List) and all(
         isinstance(elem, int) for elem in stop_words), 'invalid stop_words'
     # each id in stop_words represents a stop word
@@ -348,7 +350,7 @@ class TurboMindInstance:
             outputs = _tm_dict_to_torch_dict(tm_outputs)
 
             output_ids = outputs['output_ids'][:, 0, :]
-            sequence_length = outputs['sequence_length'].long()[:, 0].cpu()
+            sequence_length = outputs['sequence_length'].long()[:, 0]
             output_ids = [
                 output_id[s:l] for output_id, s, l in zip(
                     output_ids, seq_start, sequence_length)
@@ -364,7 +366,6 @@ class TurboMindInstance:
                     outputs.append((output[:-1], len_))
                 else:
                     outputs.append((output, len_))
-
             yield outputs
 
             if finish:
