@@ -1,7 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import asyncio
 import dataclasses
-import os.path as osp
 import random
 from contextlib import contextmanager
 from typing import List, Literal, Optional
@@ -28,15 +27,10 @@ class AsyncEngine:
 
     def __init__(self, model_path, instance_num=32, tp=1, **kwargs) -> None:
         from lmdeploy import turbomind as tm
-        from lmdeploy.tokenizer import Tokenizer
-        tokenizer_model_path = osp.join(model_path, 'triton_models',
-                                        'tokenizer')
-        tokenizer = Tokenizer(tokenizer_model_path)
-        self.tm_model = tm.TurboMind(model_path,
-                                     eos_id=tokenizer.eos_token_id,
-                                     tp=tp,
-                                     **kwargs)
-        self.tokenizer = tokenizer
+        self.tm_model = tm.TurboMind.from_pretrained(model_path,
+                                                     tp=tp,
+                                                     **kwargs)
+        self.tokenizer = self.tm_model.tokenizer
         self.generators = [
             self.tm_model.create_instance() for i in range(instance_num)
         ]
@@ -248,6 +242,11 @@ class AsyncEngine:
                                  len(input_ids), tokens, finish_reason, cur_output_ids)
                     response_size = tokens
 
+                # `response_size` might be note updated since
+                # ` if response.endswith('�')`
+                if response_size != tokens:
+                    yield GenOut(response, self.steps[str(session_id)],
+                                 len(input_ids), tokens, finish_reason)
                 # update step
                 self.steps[str(session_id)] += len(input_ids) + tokens
                 if sequence_end or stop:
